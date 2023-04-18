@@ -1,0 +1,274 @@
+// This will hold the BNF for the language
+
+< CODE >                 ::= DEF < definitions > < program >
+                           | < program >
+
+< definitions >          ::= < structure-defs > < global-defs > < function-defs > 
+                             END DEF
+
+< structure-defs >       ::= < structure-def > < structure-defs >
+                           | ''
+
+< structure-def >        ::= STRUCT ID < strucutre-arg > < structure-args > 
+                             END STRUCT
+
+< structure-args >       ::= (id) < structure-arg > < structure-args >
+                           | ''
+
+< structure-arg >        ::= < variable-def >
+
+< global-defs >          ::= < global-def > < global-defs >
+                           | ''
+
+< global-def >           ::= < assign_or_var_def >
+
+< function-defs >        ::= (function) < function-def > < function-defs >
+                           | ''
+
+< function-def >         ::= FUN ID LPAREN < parameters > RPAREN 
+                              RETURNS < fun-return-type > < fun-statements > 
+                              END FUN
+
+< parameters >         ::= < parameter > < parameters' >
+						   
+< parameters' >        ::= COMMA < parameters'' >
+						   | ''
+						   
+< parameters'' >		 ::= < parameter > < parameters' >
+						   | ''
+
+< parameter >          ::= ID COLON < changeable > < fun-arg-type >
+
+< changeable >            ::= CHANGEABLE
+                           | ''
+
+< fun-arg-type >         ::= < basic-type >
+                           | ARRAY < fun-arg-type' >
+
+< fun-arg-type' >        ::= OF < basic-type >
+                           | LBRACKET < bounds > RBRACKET OF < basic-type >
+
+< fun-return-type >      ::= NOTHING
+                           | < basic-type >
+
+< fun-statements >       ::= < fun-statement > < fun-statements >
+                           | ''
+
+< fun-statement >        ::= RETURN < return-value >
+                           | < statement >
+
+< return-value >         ::= NOTHING
+                           | < resolvable >
+
+==================================================================================
+
+< program >              ::= PROGRAM < statements > END PROGRAM
+
+< statements >           ::= < statement > < statements >
+                           | ''
+
+< statement >            ::= (ID) < asg or var-def >
+                           | (WHILE) < while >
+                           | (IF) < if >
+                           | (REPEAT) < repeat >
+                           | (UNLINK) < unlink >
+                           | QUIT
+                           | (*otherwise...) < resolvable >
+						   
+< asg or var-def >		 ::= (ID) (EQ) < assignment >
+						   | (ID) (COLON) < variable-def >
+						   | (*otherwise...) < reference > < resolvable' >
+
+< unlink >               ::= UNLINK < reference >
+
+< loop-statements >      ::= < loop-statement > < loop-statements >
+                           | ''
+
+< loop-statement >       ::= BREAK
+                           | CONTINUE
+                           | < statement >
+
+< variable-def >         ::= < ids > COLON < variable-type > < var-def-equal >
+
+< ids >                  ::= ID < ids' >
+						 
+< ids' >        		 ::= COMMA < ids'' >
+						   | ''
+						   
+< ids'' >		 		 ::= ID < ids' >
+						   | ''
+
+< var-def-equal >        ::= EQ < resolvable >
+                           | ''
+
+< variable-type >        ::= < basic-type >
+                           | ARRAY < type or bounds >
+                           | LINK TO < basic-type >
+
+
+< type or bounds >       ::= OF < basic-type >
+                           | LBRACKET < bounds > RBRACKET OF < basic-type >
+
+< basic-type >           ::= NUMBER
+                           | TEXT
+                           | ID // for structures
+
+< bounds >               ::= < bound > < bounds' >
+                           | ''
+						 
+< bounds' >        		 ::= COMMA < bounds'' >
+						   | ''
+						   
+< bounds'' >		 	 ::= < bound > < bounds' >
+						   | ''
+
+< bound >                ::= < resolvable > < bound' >
+						   
+< bound' >				 ::= TO < resolvable >
+						   | ''
+
+< assignment >           ::= < reference > EQ < assignment' >
+
+< assignment' >          ::= LINK TO < reference >
+                           | < resolvable >
+
+< while >                ::= WHILE < condition > < loop-statements > END 'while'
+
+< if >                   ::= IF < condition > THEN < loop-statements > < if2 >
+
+< if2 >                  ::= END IF
+                           | ELSE < if2 elif >
+
+< if2 elif >			 ::= (IF) < if >
+						   | < loop-statements > END IF
+
+< repeat >               ::= REPEAT < repeat' >
+
+< repeat' >              ::= FOREVER < loop-statements > END REPEAT
+                           | NUMBER TIMES < loop-statements > END REPEAT
+                           | FOR ALL ID IN < resolvable > < loop-statements > END REPEAT
+
+< condition >            ::= < logic-andable > < condition' >
+						   
+< condition' >           ::= OR < logic-andable > < condition' >           
+                           | ''
+
+< logic-andable >        ::= < logic-paren >  < logic-andable' >
+
+< logic-andable' >       ::= AND < logic-paren > < logic-andable' >
+                           | ''
+
+< logic-paren >          ::= LPAREN < condition > RPAREN
+                           | < comparable >
+
+< comparable >           ::= ID < comparable' >
+                           | < resolvable > < comparable'' >
+
+< comparable' >          ::= IS < linked or not >
+                           | < resolvable' > < comparable'' >
+
+< comparable'' >         ::= GT < resolvable >
+                           | LT < resolvable >
+                           | GE < resolvable >
+                           | LE < resolvable >
+                           | EQ < resolvable >
+                           | NE < resolvable >
+
+< linked or not >        ::= LINKED
+						   | WORDNOT LINKED
+
+< resolvable >           ::= < bit-orable >
+
+====================================
+< bit-orable >           ::= < bit-xorable > < bit-orable' >
+						   
+< bit-orable' >			 ::= BOR < bit-orable >
+						   | ''
+
+< bit-xorable >          ::= < bit-andable > < bit-xorable' >
+						   
+< bit-xorable' >		 ::= BXOR < bit-xorable >
+						   | ''
+
+< bit-andable >          ::= < bit-shiftable >  < bit-andable' >
+						   
+< bit-andable' >		 ::= BAND < bit-andable >
+						   | ''
+
+< bit-shiftable >        ::= < expression > < bit-shiftable' >
+
+< bit-shiftable' >       ::=  BSL < bit-shiftable >
+                           |  BSR < bit-shiftable >
+                           | ''
+
+< expression >           ::= < term > < expression' >
+
+< expression' >			 ::= ADD < expression >
+                           | SUB < expression >
+                           | ''
+
+< term >                 ::= < factor > < term' >
+
+< term' >                ::= MUL < term >
+                           | DIV < term >
+                           | MOD < term >
+                           | ''
+
+< factor >               ::= < bit-notable > < factor' >
+                           | SUB < factor >
+
+< factor' >              ::= POW < factor >
+                           | ''
+
+< bit-notable >          ::= BNOT < exponent >
+                           | < exponent >
+
+< exponent >             ::= ADD < exponent >
+                           | LPAREN < resolvable > RPAREN
+                           | NUMBER
+                           | TEXT
+                           | ID < ref-or-call > //pass in id
+                           | (LCURLY) < array-struct-lit >
+
+< ref-or-call >			 ::= LPAREN < call' >
+						   | < reference' >
+
+< array-struct-lit >     ::= LCURLY < array-struct-items > RCURLY
+
+< array-struct-items >   ::= < resolvable > < array-struct-items' >
+                           | ''
+
+< array-struct-items' >  ::= COMMA < array-struct-items'' >
+						   | ''
+
+< array-struct-items'' > ::= < resolvable > < array-struct-items' >
+						   | ''
+
+
+
+
+< reference >            ::= ID < reference' >
+
+< reference' >           ::= LBRACKET < index > RBRACKET < reference' >
+                           | PERIOD ID < reference' >
+						   | ''
+
+
+
+< index >                ::= < resolvable > < index' >
+                           | ''
+
+< index' >				 ::= COMMA < index >
+						   | ''
+
+< call >                 ::= ID LPAREN < call' >
+**************
+< call' >                ::= < arg-list > RPAREN
+                           | RPAREN
+**************
+< arg-list >             ::= < resolvable > < arg-list' >
+
+< arg-list' >            ::= COMMA < arg-list'' >
+                           | ''
+< arg-list'' >			 ::= < resolvable > < arg-list' >
+						   | ''
